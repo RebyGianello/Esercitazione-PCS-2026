@@ -28,6 +28,7 @@ media = media/N;
 for(int i=0; i<N;i++){
 	varianza = varianza + pow(media-arr[i],2);
 }
+varianza = varianza/N;
 dev_standard = sqrt(varianza);
 cout << "Il minimo del vettore arr è:" << minimo << "\n";
 cout << "Il massimo del vettore arr è:" << massimo << "\n";
