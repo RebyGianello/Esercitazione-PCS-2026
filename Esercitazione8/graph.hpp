@@ -21,7 +21,7 @@ class unidirected_edge
             }
             else
             {
-                first = a; second= b;
+                first = a; second = b;
             }
         }
 
@@ -46,6 +46,8 @@ class unidirected_edge
             }
             else return false;
         }   
+
+
 };
 
 template<typename T>
@@ -62,86 +64,106 @@ template<typename T>
 class unidirected_graph
 {
     private:
-        set<unidirected_edge<T>> archi;
-        set<T> nodi;    
-        map<T,set<T>> nadiacenti;
-        map<unidirected_edge<T>,int>  ednum;
-        unordered_map<int,unidirected_edge<T>> edat; 
-        int contatore = 0;
-    public:
+        set<unidirected_edge<T>> edges; 
+        set<T> nodes;    
+        map<T,set<T>> nnear; 
+        public:
         unidirected_graph()=default;
         unidirected_graph(const unidirected_graph& other)
         {
-            archi = other.archi;
-            nodi = other.nodi;
-            nadiacenti = other.nadiacenti;
-            ednum = other.ednum;
-            edat = other.edat;
-            contatore = other.contatore;
+            edges = other.edges;
+            nodes = other.nodes;
+            nnear = other.nnear;
         }
 
-        set<T> neighours(const T& nodo) const
+        set<T> neighours(const T& node) const
         {
-            auto it = nadiacenti.find(nodo);
-            if(it != nadiacenti.end())
+            auto it = nnear.find(node);
+            
+            if(it != nnear.end())
                 return it->second; 
             else return set<T>();
         }
+
         void add_edge(const unidirected_edge<T>& newarc)
         {
-            auto prova = archi.insert(newarc);
+            auto prova = edges.insert(newarc);
             if(prova.second)
             {
-                nodi.insert(newarc.from());
-                nodi.insert(newarc.to());
-                nadiacenti[newarc.from()].insert(newarc.to());
-                nadiacenti[newarc.to()].insert(newarc.from());
-                ednum[newarc] = contatore;
-                edat.insert({contatore,newarc});
-                contatore++;
+                nodes.insert(newarc.from());
+                nodes.insert(newarc.to());
+                nnear[newarc.from()].insert(newarc.to());
+                nnear[newarc.to()].insert(newarc.from());
             }
         }
 
-        set<unidirected_edge<T>> all_edges() const {return archi;}
-        set<T> all_nodes() const {return nodi;}
+        set<unidirected_edge<T>> all_edges() const {return edges;}
+        set<T> all_nodes() const {return nodes;}
 
-        int edge_number(const unidirected_edge<T>& arco) const
+        int edge_number(const unidirected_edge<T>& edge) const
         {
-            if(ednum.find(arco) != ednum.end()) return ednum.at(arco);
-            else return -1;
+            auto target = edges.find(edge);
+        
+            if (target == edges.end()) {
+                return -1;
+            }
+
+            int index = 0;
+            for (auto it = edges.begin(); it != target; ++it) {
+                index++;
+            }
+            
+            return index;
         }
-        unidirected_edge<T> edge_at(int num) const
+
+        unidirected_edge<T> edge_at(size_t num) const
         {
-            return edat.at(num);
+            if (num >= edges.size()) 
+            {
+                std::cerr << "Errore: Indice dell'arco non valido" << std::endl;
+                return unidirected_edge<T>(); 
+            }
+
+            auto it = edges.begin();
+            
+            for (size_t i = 0; i < num; i++) 
+            {
+                ++it; 
+            }
+            
+            return *it; 
         }
 
         unidirected_graph<T> operator-(const unidirected_graph<T>& other) const
         {
-            unidirected_graph<T> risultato;
-            int n = archi.size();
-            for(int i=0; i<n; i++)
+            unidirected_graph<T> result;
+            for(const auto& corrente : edges)
             {
-                unidirected_edge<T> corrente = edat.at(i);
-                if(other.archi.find(corrente) == other.archi.end())
+                if(other.edges.find(corrente) == other.edges.end())
                 {
-                   risultato.add_edge(corrente);
+                   result.add_edge(corrente);
                 }
             }
-            return risultato;
+            return result;
         }
 
 };
+
 
 template<typename T>
 std::ostream&
 operator<<(std::ostream& os, const unidirected_graph<T>& g)
 {
-    int n = g.all_edges().size();
-    os<<"{";
-    for(int i = 0; i<n;i++)
+    auto all_the_edges = g.all_edges();
+    size_t n = all_the_edges.size();
+    size_t i = 0;
+    
+    os << "{";
+    for(const auto& edge : all_the_edges)
     {
-        os << g.edge_at(i);
-        if(i!=n-1) os << ", "; 
+        os << edge;
+        if(i != n - 1) os << ", ";
+        i++;
     }
     os << "}\n";
     return os;
